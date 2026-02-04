@@ -25,3 +25,6 @@ tmp
 
 # macOS system files
 .DS_Store
+
+# Documentation files (internal setup guides)
+WORKFLOW_SETUP.md

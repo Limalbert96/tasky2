@@ -39,7 +39,7 @@ jobs:
           exit-code: '0'  # Continue on findings (intentionally vulnerable demo)
 
       - name: Upload Trivy filesystem scan results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-fs-results.sarif'
@@ -56,7 +56,7 @@ jobs:
           exit-code: '0'
 
       - name: Upload Trivy Dockerfile scan results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-dockerfile-results.sarif'
@@ -82,6 +82,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
 
     steps:
       - name: Checkout repository
@@ -103,15 +104,19 @@ jobs:
             latest=true
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          load: false
 
-      - name: Run Trivy scan on built image
+      - name: Run Trivy scan on pushed image
         uses: aquasecurity/trivy-action@master
+        if: success()
+        continue-on-error: true
         with:
           image-ref: ${{ steps.meta.outputs.tags }}
           format: 'sarif'
@@ -120,8 +125,9 @@ jobs:
           exit-code: '0'
 
       - name: Upload Trivy image scan results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        if: success() && hashFiles('trivy-image-results.sarif') != ''
+        continue-on-error: true
         with:
           sarif_file: 'trivy-image-results.sarif'
           category: 'trivy-container-image'
