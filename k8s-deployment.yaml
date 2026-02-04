@@ -79,7 +79,7 @@ spec:
       containers:
       - name: tasky
         # RISK: Using latest tag
-        image: ghcr.io/limalbert96/tasky:latest
+        image: ghcr.io/limalbert96/tasky2:latest
         # Database Connection Configuration
         # Risk: Credentials exposed in environment
         env:
